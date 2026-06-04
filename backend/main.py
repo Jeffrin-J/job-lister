@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import db
-from fetchers import arbeitnow, remotive, jobicy
+from fetchers import arbeitnow, remotive, jobicy, adzuna, jsearch, himalayas, workingnomads
 from services.ranker import score_job
 from services.cover_letter import generate_cover_letter
 
@@ -46,15 +46,19 @@ def get_job(job_id: str):
 @app.post("/api/fetch")
 async def fetch_jobs():
     """Fetch latest jobs from all sources and store them."""
-    arb, rem, jcy = await asyncio.gather(
+    arb, rem, jcy, adz, jsr, him, nom = await asyncio.gather(
         arbeitnow.fetch_jobs(pages=5),
         remotive.fetch_jobs(),
         jobicy.fetch_jobs(),
+        adzuna.fetch_jobs(),
+        jsearch.fetch_jobs(),
+        himalayas.fetch_jobs(),
+        workingnomads.fetch_jobs(),
         return_exceptions=True,
     )
 
     all_jobs = []
-    for result in [arb, rem, jcy]:
+    for result in [arb, rem, jcy, adz, jsr, him, nom]:
         if isinstance(result, list):
             all_jobs.extend(result)
         else:
